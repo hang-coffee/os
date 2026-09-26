@@ -1,105 +1,29 @@
-# 32位类Unix操作系统 · 完整TODO清单
-
-> 技术栈固定：**NASM** 写汇编，**GCC (i686-elf-gcc)** 写 C，**GRUB** 引导，**QEMU** 调试。
-> 每完成一项打勾，未稳定前不进入下一阶段。
-
----
-
-## 阶段 0 · 工程奠基
-
-### 0.1 交叉编译工具链
-- [ ] 下载 binutils 源码
-- [ ] 配置 `--target=i686-elf --prefix=/usr/local/cross --disable-nls --disable-werror`
-- [ ] 编译并安装 binutils
-- [ ] 下载 GCC 源码（含必要依赖：gmp、mpfr、mpc）
-- [ ] 配置 `--target=i686-elf --prefix=/usr/local/cross --disable-nls --enable-languages=c --without-headers`
-- [ ] 编译 `all-gcc`
-- [ ] 编译 `all-target-libgcc`
-- [ ] 安装 gcc 与 libgcc
-- [ ] 验证 `i686-elf-gcc -v` 和 `i686-elf-ld -v` 可用
-- [ ] 确认系统 nasm 版本支持 `-f elf32`
-
-### 0.2 目录骨架
-- [ ] 创建 `boot/` 放 NASM 引导汇编
-- [ ] 创建 `kernel/arch/` 放 GDT/IDT/分页等架构代码
-- [ ] 创建 `kernel/mm/` 放内存管理
-- [ ] 创建 `kernel/sched/` 放调度与进程
-- [ ] 创建 `kernel/fs/` 放 VFS 与具体文件系统
-- [ ] 创建 `kernel/drivers/` 放设备驱动
-- [ ] 创建 `kernel/syscall/` 放系统调用
-- [ ] 创建 `libc/` 放 libc 移植与存根
-- [ ] 创建 `user/` 放用户态程序
-- [ ] 创建 `tools/` 放构建与镜像脚本
-- [ ] 创建 `build/` 作为输出目录（加入 `.gitignore`）
-
-### 0.3 构建系统
-- [ ] 编写顶层 `Makefile`
-- [ ] 定义 `CC = i686-elf-gcc`
-- [ ] 定义 `LD = i686-elf-ld`
-- [ ] 定义 `NASM = nasm`
-- [ ] 定义 `CFLAGS = -std=gnu11 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-pic -nostdlib`
-- [ ] 定义 `ASFLAGS = -f elf32 -g -F dwarf`
-- [ ] 编写 `.c → .o` 规则
-- [ ] 编写 `.asm → .o` 规则
-- [ ] 编写链接规则，输出 `myos.elf`
-- [ ] 编写 `iso` 目标生成可引导镜像
-- [ ] 编写 `run` 目标启动 QEMU
-- [ ] 编写 `debug` 目标支持 GDB 远程调试
-- [ ] 编写 `clean` 目标
-- [ ] 确认所有中间产物进 `build/`
-
-### 0.4 链接脚本
-- [ ] 创建 `linker.ld`
-- [ ] 设置入口符号 `ENTRY(_start)`
-- [ ] 起始地址设为 `1M`（0x100000）
-- [ ] 把 `.multiboot` 段放在最前面（前 8KB 内）
-- [ ] 安排 `.text` / `.rodata` / `.data` / `.bss` 顺序
-- [ ] 定义内核起始与结束符号（`kernel_start` / `kernel_end`）
-- [ ] 处理 `COMMON` 段
-
-### 0.5 镜像与调试环境
-- [ ] Debian 安装 `grub-pc-bin grub-common xorriso`
-- [ ] 编写 `grub.cfg`（`multiboot /boot/myos.elf`）
-- [ ] 用 `grub-mkrescue` 生成 `.iso`
-- [ ] 确认 QEMU 启动脚本参数：`-cdrom`、`-serial stdio`、`-m 128`、`-no-reboot -no-shutdown`
-- [ ] 准备 `gdb` + `qemu -s -S` 的调试流程
-- [ ] 建立 Git 仓库并首次提交
-
-### 0.6 编码规范
-- [ ] 确定命名风格（如 `snake_case` 用于 C，NASM 符号统一前缀）
-- [ ] 确定 C 调用约定（统一 cdecl）
-- [ ] 确定内联汇编策略（尽量少用，特权操作全放 `.asm`）
-- [ ] 确定头文件组织方式
-- [ ] 确定日志与断言宏的使用方式
-
----
-
 ## 阶段 1 · 最小可运行内核
 
 ### 1.1 Multiboot 引导
-- [ ] 编写 `boot/boot.asm`
-- [ ] 放置 Multiboot 头（magic `0x1BADB002`，flags，校验和）
-- [ ] 定义 `_start` 为全局符号
-- [ ] `_start` 中先 `cli` 关中断
-- [ ] 在 `.bss` 中预留内核栈（≥16KB）
-- [ ] 设置 `esp` 指向栈顶
-- [ ] 把 `eax`（magic）与 `ebx`（info 指针）压栈
-- [ ] 调用 `kernel_main`
-- [ ] 返回后 `hlt` 死循环
+- [x] 编写 `boot/boot.asm`
+- [x] 放置 Multiboot 头（magic `0x1BADB002`，flags，校验和）
+- [x] 定义 `_start` 为全局符号
+- [x] `_start` 中先 `cli` 关中断
+- [x] 在 `.bss` 中预留内核栈（≥16KB）
+- [x] 设置 `esp` 指向栈顶
+- [x] 把 `eax`（magic）与 `ebx`（info 指针）压栈
+- [x] 调用 `kernel_main`
+- [x] 返回后 `hlt` 死循环
 
 ### 1.2 基础输出
-- [ ] `kernel/drivers/vga.c`：VGA 文本模式初始化
-- [ ] 实现屏幕清屏
-- [ ] 实现单字符输出
-- [ ] 实现换行、回车、退格、Tab
-- [ ] 实现滚动
-- [ ] 实现基本颜色控制
-- [ ] `kernel/drivers/serial.c`：串口初始化（COM1，0x3F8）
-- [ ] 实现 `serial_putc`
-- [ ] 实现 `serial_puts`
+- [x] `kernel/drivers/vga.c`：VGA 文本模式初始化
+- [x] 实现屏幕清屏
+- [x] 实现单字符输出
+- [x] 实现换行、回车、退格、Tab
+- [x] 实现滚动
+- [x] 实现基本颜色控制
+- [x] `kernel/drivers/serial.c`：串口初始化（COM1，0x3F8）
+- [x] 实现 `serial_putc`
+- [x] 实现 `serial_puts`
 - [ ] 实现串口中断接收（可选，后期）
-- [ ] 实现统一 `kprintf`，同时输出到 VGA 与串口
-- [ ] 支持 `%d %u %x %p %s %c %%`
+- [x] 实现统一 `kprintf`，同时输出到 VGA 与串口
+- [x] 支持 `%d %u %x %p %s %c %%`
 
 ### 1.3 GDT
 - [ ] 定义 GDT 条目结构
