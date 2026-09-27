@@ -22,4 +22,8 @@ typedef struct {
     uint32_t  base;
 } __attribute__((packed)) gdt_ptr_t;        // LGDT用的
 
+void gdt_init(void);
+int gdt_set_entry(uint32_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
+extern void gdt_flush(uint32_t ptr_addr);
+
 #endif

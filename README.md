@@ -34,6 +34,8 @@ make -j$(nproc) all-gcc all-target-libgcc
 sudo make install-gcc install-target-gcc
 ```
 
+`make` 来编译，`make run`来运行。
+
 ## 许可证
 
 GNU GPL 3.0
