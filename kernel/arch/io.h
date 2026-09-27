@@ -62,5 +62,29 @@ static inline uint32_t ind(uint16_t port) {
 	return ret;
 }
 
+static inline void cli(void) {
+	__asm__ __volatile__(
+		"cli"
+		::
+	);
+	return;
+}
+
+static inline void sti(void) {
+	__asm__ __volatile__(
+		"sti"
+		::
+	);
+	return;
+}
+
+static inline void hlt(void) {
+	__asm__ __volatile__(
+		"hlt"
+		::
+	);
+	return;
+}
+
 #endif
 

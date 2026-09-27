@@ -5,10 +5,14 @@
 
 #include "include/kprintf.h"
 #include "arch/gdt.h"
+#include "arch/idt.h"
+#include "arch/io.h"
 
 void kernel_main() {
 	gdt_init();
-	kprintf("Hello World %d\n", 123);
+	cli();
+	idt_init();
+	kprintf("Initialized GDT & IDT.\n");
 	while(1);
 }
 
