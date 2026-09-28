@@ -7,6 +7,7 @@ bits 32
 section .text
 extern isr_handler
 global idt_flush
+global isr_blank
 
     idt_flush:
     ; void idt_flush(uint32_t ptr_addr);
@@ -35,6 +36,12 @@ global idt_flush
     popa
     add esp, 8
     iretd
+
+    isr_blank:
+    cli
+    push 0
+    push 0xffffffff
+    jmp isr_common
 
     %macro ISR_NOERR 1
     global isr%1

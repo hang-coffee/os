@@ -24,6 +24,7 @@ typedef struct {
 void idt_init(void);
 int idt_set_gate(uint32_t index, uint32_t offset, uint16_t selector, uint8_t attr);
 extern void idt_flush(uint32_t ptr_addr);
+extern void isr_blank();
 
 typedef struct {
     uint32_t gs, fs, es, ds;

@@ -22,10 +22,6 @@ typedef enum {
     IDT_GATE_UNPRESENT=0x0e,
 } idt_attr;
 
-__attribute__((interrupt)) void isr_blank(void *pointer) {
-    return;
-}
-
 int idt_set_gate(uint32_t index, uint32_t offset, uint16_t selector, uint8_t attr) {
     if(index>=IDT_GATES) return -1;
     idt_gates[index].offset_low=(uint16_t)(offset&0x0000ffff);
@@ -174,6 +170,9 @@ void isr_handler(idt_regs_t *r) {
             kprintf("err=0x%x, %s when %s\n", r->err_code, reason, (r->err_code&2)?"writing":"reading");
             cli();
             hlt();
+            break;
+        case 0xffffffff:
+            kprintf("Default ISR\n");
             break;
         default:
             isr_handle_default_err(r);

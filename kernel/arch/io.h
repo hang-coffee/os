@@ -86,5 +86,7 @@ static inline void hlt(void) {
 	return;
 }
 
+#define IO_INT(n) __asm__ __volatile__("int $" #n ::: "memory")
+
 #endif
 

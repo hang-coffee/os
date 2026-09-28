@@ -12,14 +12,16 @@ section .text
 bits 32
 align 4
 extern kernel_main
+global kernel_stack
 global _start
 	_start:
 	cli
-	mov eax, kernel_stack
-	mov esp, eax
-	push eax					; magic
+	mov edx, kernel_stack
+	mov esp, edx
 	push ebx					; info指针
+	push eax					; magic
 	call kernel_main
+	add esp, 8
 	halt_end:
 	hlt
 	jmp halt_end
