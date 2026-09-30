@@ -38,4 +38,4 @@ sudo make install-gcc install-target-gcc
 
 ## 许可证
 
-GNU GPL 3.0
+GNU GPL 2.0，请见LICENSE
