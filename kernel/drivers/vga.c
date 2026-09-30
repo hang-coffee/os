@@ -7,7 +7,7 @@
 #include "../arch/io.h"
 #include <stdint.h>
 
-volatile uint16_t *vga_text=(volatile uint16_t *)0xb8000;
+volatile uint16_t *vga_text=(volatile uint16_t *)0xc00b8000;
 
 void vga_putc(vga_context_t *vga, uint8_t c, uint8_t color) {
 	uint8_t x_now, y_now;

@@ -79,39 +79,39 @@
 - [x] 实现分配统计（已用/空闲）
 
 ### 2.3 分页机制
-- [ ] 定义页目录与页表结构
-- [ ] 分配页目录（4KB 对齐）
-- [ ] 建立恒等映射（至少前 16MB）
-- [ ] 设置页目录项属性（present、rw、user）
-- [ ] 编写 `paging.asm` 中的 `load_page_directory`
-- [ ] 编写 `paging.asm` 中的 `enable_paging`
-- [ ] 开启 `CR0.PG`
-- [ ] 开启 `CR0.WP` 写保护
-- [ ] 验证开启分页后内核正常运行
-- [ ] 实现 `map_page(virt, phys, flags)`
-- [ ] 实现 `unmap_page(virt)`
+- [x] 定义页目录与页表结构
+- [x] 分配页目录（4KB 对齐）
+- [x] 建立恒等映射（至少前 16MB）
+- [x] 设置页目录项属性（present、rw、user）
+- [x] 编写 `paging.asm` 中的 `load_page_directory`
+- [x] 编写 `paging.asm` 中的 `enable_paging`
+- [x] 开启 `CR0.PG`
+- [x] 开启 `CR0.WP` 写保护
+- [x] 验证开启分页后内核正常运行
+- [x] 实现 `map_page(virt, phys, flags)`
+- [x] 实现 `unmap_page(virt)`
 - [ ] 实现按需分配页表
-- [ ] 实现 `get_physical(virt)`
+- [x] 实现 `get_physical(virt)`
 
 ### 2.4 页错误处理
-- [ ] 在 `#PF` 处理中读 `CR2`
-- [ ] 读取错误码判断原因（present / write / user / reserved）
-- [ ] 区分缺页与保护违规
-- [ ] 缺页时尝试按需分配物理页
+- [x] 在 `#PF` 处理中读 `CR2`
+- [x] 读取错误码判断原因（present / write / user / reserved）
+- [x] 区分缺页与保护违规
+- [BUGGY] 缺页时尝试按需分配物理页
 - [ ] 保护违规时向进程发送 SIGSEGV（后期）
 - [ ] 记录出错地址与进程信息
 
 ### 2.5 内核堆
-- [ ] 确定堆所在虚拟地址区间
-- [ ] 预留若干页作为初始堆
-- [ ] 实现简单空闲链表分配器
-- [ ] 实现 `kmalloc`
-- [ ] 实现 `kfree`
-- [ ] 实现 `kcalloc`
+- [x] 确定堆所在虚拟地址区间
+- [x] 预留若干页作为初始堆
+- [x] 实现简单空闲链表分配器
+- [x] 实现 `kmalloc`
+- [x] 实现 `kfree`
+- [x] 实现 `kcalloc`
 - [ ] 实现 `krealloc`
-- [ ] 处理对齐要求
-- [ ] 堆不足时自动扩展（连续映射更多页）
-- [ ] 加入调试信息：分配大小、调用位置
+- [x] 处理对齐要求
+- [x] 堆不足时自动扩展（连续映射更多页）
+- [x] 加入调试信息：分配大小、调用位置
 - [ ] 加入基本越界检测（可选）
 
 ### 2.6 阶段验证

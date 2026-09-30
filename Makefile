@@ -43,7 +43,7 @@ run: $(ISO)
 	qemu-system-i386 -cdrom $(ISO) -serial stdio -m 128 -no-reboot -no-shutdown
 
 debug: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -serial stdio -m 128 -s -S -no-reboot -no-shutdown
+	qemu-system-i386 -cdrom $(ISO) -serial stdio -m 128 -s -S -no-reboot -no-shutdown -d int
 
 clean:
 	rm -rf $(BUILD)

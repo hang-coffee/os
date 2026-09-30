@@ -5,13 +5,14 @@
 
 #include "pmm.h"
 #include "mem_map.h"
+#include "paging.h"
 
 #include "../include/kprintf.h"
 
 pmm_state_t pmm;
 
-extern uint8_t kernel_end[];
-extern uint8_t kernel_start[];
+extern uint8_t kernel_phys_start[];
+extern uint8_t kernel_phys_end[];
 
 static inline void bitmap_set(uint32_t page) {
     pmm.bitmap[page / 8] |=  (1 << (page % 8));
@@ -38,8 +39,10 @@ void pmm_init() {
     uint32_t bitmap_byte=(pmm.total_pages+7)/8;
     uint32_t bitmap_pages=(bitmap_byte+4095)/4096;
     pmm.bitmap_size=bitmap_pages*4096;
-    // 计算位图起始地址
-    uint32_t bitmap_start=PAGE_ALIGN_UP((uint32_t)kernel_end);
+    // 计算位图起始地址（物理）
+    uint32_t bitmap_start=PAGE_ALIGN_UP((uint32_t)kernel_phys_end);
+    pmm.bitmap_phys=bitmap_start;
+    // 尚未启用分页，物理地址可直接当指针用
     pmm.bitmap=(uint8_t *)bitmap_start;
     for(uint32_t i=0; i<pmm.bitmap_size; i++) {
         pmm.bitmap[i]=0xff;
@@ -52,13 +55,27 @@ void pmm_init() {
     pmm_mark_range(0x10000, 0x1000, PMM_USED);
     pmm_mark_range(0x9FC00, 0x6400, PMM_USED);
     pmm_mark_range(0xA0000, 0x20000, PMM_USED);
-    pmm_mark_range((uint32_t)kernel_start, (uint32_t)kernel_end-(uint32_t)kernel_start, PMM_USED);
+    uint32_t ks=(uint32_t)kernel_phys_start;
+    uint32_t ke=(uint32_t)kernel_phys_end;
+    pmm_mark_range(ks, ke-ks, PMM_USED);
     pmm_mark_range(bitmap_start, pmm.bitmap_size, PMM_USED);
 
     for(uint32_t i=0; i<pmm.total_pages; i++) {
         if(bitmap_test(i)) pmm.used_pages++;
         else pmm.free_pages++;
     }
+
+    kprintf("pmm: kernel phys 0x%x - 0x%x\n",
+        (uint32_t)kernel_phys_start, (uint32_t)kernel_phys_end);
+kprintf("pmm: bitmap phys 0x%x, size %u\n",
+        pmm.bitmap_phys, pmm.bitmap_size);
+kprintf("pmm: free=%u used=%u total=%u\n",
+        pmm.free_pages, pmm.used_pages, pmm.total_pages);
+}
+
+void pmm_set_physmap() {
+    // 把位图指针从物理地址切到虚拟地址
+    pmm.bitmap=(uint8_t *)PHYS_TO_VIRT(pmm.bitmap_phys);
 }
 
 void pmm_mark_range(uint32_t base, uint32_t len, uint8_t attr) {
@@ -90,7 +107,7 @@ uint32_t pmm_alloc_page(void) {
 
 void pmm_free_page(uint32_t addr) {
     uint32_t page = ADDR_TO_PAGE(addr);
-    if (page >= pmm.total_pages) return;   // 防御
+    if (page >= pmm.total_pages) return;  
     if (!bitmap_test(page)) return;        // 双重释放
     bitmap_clear(page);
     pmm.free_pages++;
