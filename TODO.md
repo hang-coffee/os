@@ -115,22 +115,22 @@
 - [ ] 加入基本越界检测（可选）
 
 ### 2.6 阶段验证
-- [ ] `kmalloc` / `kfree` 压测通过
-- [ ] 故意访问未映射地址能触发 `#PF` 并被捕获
-- [ ] 分页后 GDT/IDT/栈仍正常
-- [ ] `git commit`
+- [x] `kmalloc` / `kfree` 压测通过
+- [x] 故意访问未映射地址能触发 `#PF` 并被捕获
+- [x] 分页后 GDT/IDT/栈仍正常
+- [x] `git commit`
 
 ---
 
 ## 阶段 3 · 中断、时钟与抢占式调度
 
 ### 3.1 PIC 与 IRQ
-- [ ] 重新映射 PIC，把 IRQ 移到 0x20–0x2F
-- [ ] 屏蔽所有 IRQ，逐个开启
-- [ ] 实现 IRQ 统一存根（`irq.asm`）
-- [ ] C 侧 IRQ 分发表
-- [ ] 实现 `irq_register_handler`
-- [ ] 每个 IRQ 处理完发送 EOI
+- [x] 重新映射 PIC，把 IRQ 移到 0x20–0x2F
+- [x] 屏蔽所有 IRQ，逐个开启
+- [x] 实现 IRQ 统一存根（`irq.asm`）
+- [x] C 侧 IRQ 分发表
+- [x] 实现 `irq_register_handler`
+- [x] 每个 IRQ 处理完发送 EOI
 
 ### 3.2 PIT 时钟
 - [ ] 配置 PIT 通道 0

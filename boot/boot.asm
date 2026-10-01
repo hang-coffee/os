@@ -108,5 +108,5 @@ align 16
 	section .stack
 align 16
 	global kernel_stack
-	kernel_stack:
 	resb 16384
+	kernel_stack:

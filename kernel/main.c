@@ -7,6 +7,9 @@
 #include "arch/gdt.h"
 #include "arch/idt.h"
 #include "arch/io.h"
+#include "arch/pic.h"
+#include "arch/irq.h"
+#include "drivers/pit.h"
 #include "mm/mem_map.h"
 #include "mm/multiboot.h"
 #include "mm/pmm.h"
@@ -182,11 +185,17 @@ void kernel_main(uint32_t magic, uint32_t info) {
 	kprintf("Total pages: %d\nFree: %d / Used: %d\n", pmm_total_pages(), pmm_free_pages_count(), pmm_used_pages());
 	heap_init();
 
-	heap_test_basic();
-	heap_test_fragment();
-	heap_test_random();
-	heap_test_extend();
-	heap_test_edge();
+    pic_init();
+    irq_init();
+
+    pit_init(100);
+    pic_unmask(0);
+    sti();
+
+    kprintf("before sleep\n");
+    sleep_ms(1000);
+    kprintf("after sleep\n");
+
 	while(1);
 }
 
