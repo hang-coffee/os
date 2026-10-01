@@ -19,23 +19,28 @@
  */
 
 //===============================
-// irq.h - IRQ处理
+// sched.h - 调度器
 // hangco, 20261001
 //===============================
 
-#ifndef IRQ_H
-#define IRQ_H
+#ifndef SCHED_H
+#define SCHED_H
 
+#include "task.h"
+#include "../arch/irq.h"
 #include <stdint.h>
-#include "idt.h"    // 获得regs
-typedef idt_regs_t irq_regs_t;
-typedef void (*irq_handler_t)(irq_regs_t *);
 
-extern uint32_t irq_stub_table[16];
-
-void irq_init(void);
-void irq_handler(irq_regs_t *r);
-void irq_register_handler(uint8_t irq, irq_handler_t fn);
-void irq_unregister_handler(uint8_t irq);
+void scheduler_init();
+int scheduler_add_task(task_t *task);
+int scheduler_remove_task(task_t *task);
+task_t *scheduler_pick_next(void);
+void schedule();
+void scheduler_tick(irq_regs_t *r);
+void sleep_queue_add(task_t *task);
+int sleep_queue_remove(task_t *task);
+void task_sleep(task_t *task);
+void sleep_ms(uint32_t ms);
+void task_block(int reason);
+void task_unblock(task_t *task);
 
 #endif

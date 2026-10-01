@@ -1,3 +1,23 @@
+/*
+ * This file is part of Congestus.
+ * Copyright (C) 2026 hangco
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
 //===============================
 // pit.c - 定时器设定
 // hangco, 20261001
@@ -8,6 +28,8 @@
 #include "../arch/irq.h"
 #include "../include/kprintf.h"
 #include "../arch/io.h"
+#include "../sched/sched.h"
+#include "../arch/pic.h"
 
 static volatile uint64_t pit_ticks;
 static uint32_t pit_freq;
@@ -21,7 +43,7 @@ void pit_init(uint32_t freq) {
     pit_ticks=0;
     uint32_t divisor=PIT_BASE_FREQ/freq;
     if(divisor<1 || divisor>65535) {
-        kprintf("pit: illegal frequency 0x%x when initializing\n", freq);
+        kprintf("pit: illegal frequency 0x%x when initializing\n     divisor=%u", freq, divisor);
         return;
     }
     outb(PIT_CMD, 0x36);
@@ -33,17 +55,14 @@ void pit_init(uint32_t freq) {
 
 void pit_handler(irq_regs_t *r) {
     pit_ticks++;
-    if(pit_ticks%100==0)
-        kprintf("tick @ %llu: one second\n", pit_ticks);
-    // TODO: 完成多任务中的scheduler_tick()
+    pic_eoi(0);
+    scheduler_tick(r);
 }
 
 uint64_t pit_get_ticks() {
     return pit_ticks;
 }
 
-void sleep_ms(uint32_t ms) {
-    uint64_t target=pit_ticks+ms*pit_freq/1000;
-    while(pit_ticks<target) hlt();
-    return;
+uint64_t pit_get_freq() {
+    return pit_freq;
 }

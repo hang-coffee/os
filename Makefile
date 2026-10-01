@@ -4,8 +4,8 @@ NASM = nasm
 CFLAGS = -std=gnu11 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-pic
 ASFLAGS = -f elf32 -g -F dwarf
 BUILD = build
-TARGET = $(BUILD)/os.elf
-ISO = $(BUILD)/os.iso
+TARGET = $(BUILD)/congestus.elf
+ISO = $(BUILD)/congestus.iso
 ISODIR = $(BUILD)/iso
 
 SRCS_C := $(shell find . -name '*.c' -not -path './$(BUILD)/*')

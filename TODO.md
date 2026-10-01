@@ -133,59 +133,59 @@
 - [x] 每个 IRQ 处理完发送 EOI
 
 ### 3.2 PIT 时钟
-- [ ] 配置 PIT 通道 0
-- [ ] 设定频率（建议 100Hz 起步，后期可调）
-- [ ] 注册 IRQ0 处理程序
-- [ ] 维护全局 tick 计数
-- [ ] 实现 `get_ticks`
-- [ ] 实现毫秒级延时（基于 tick）
+- [x] 配置 PIT 通道 0
+- [x] 设定频率（建议 100Hz 起步，后期可调）
+- [x] 注册 IRQ0 处理程序
+- [x] 维护全局 tick 计数
+- [x] 实现 `get_ticks`
+- [x] 实现毫秒级延时（基于 tick）
 
 ### 3.3 任务结构
-- [ ] 定义 `struct task`
-- [ ] 字段含：`pid`、`state`、`esp`、`cr3`、`page_dir`、`kernel_stack`、`name`、`priority`、`ticks_left`
+- [x] 定义 `struct task`
+- [x] 字段含：`pid`、`state`、`esp`、`cr3`、`page_dir`、`kernel_stack`、`name`、`priority`、`ticks_left`
 - [ ] 预留用户态字段：`uid/gid/euid/egid`、文件描述符表、信号表
-- [ ] 定义任务状态枚举：`RUNNING / READY / BLOCKED / ZOMBIE`
-- [ ] 实现任务创建：分配内核栈、设置初始栈帧
-- [ ] 让新任务首次被调度时能正确 `ret` 到入口函数
-- [ ] 实现任务销毁与资源回收
+- [x] 定义任务状态枚举：`RUNNING / READY / BLOCKED / ZOMBIE`
+- [x] 实现任务创建：分配内核栈、设置初始栈帧
+- [x] 让新任务首次被调度时能正确 `ret` 到入口函数
+- [x] 实现任务销毁与资源回收
 
 ### 3.4 上下文切换
-- [ ] 编写 `switch.asm` 中的 `switch_context`
-- [ ] 保存 `pusha` 与 `pushfd`
-- [ ] 保存旧 `esp` 到旧任务结构
-- [ ] 加载新任务 `esp`
-- [ ] 恢复 `popfd` 与 `popa`
-- [ ] `ret` 到新任务上次中断点
+- [x] 编写 `switch.asm` 中的 `switch_context`
+- [x] 保存 `pusha` 与 `pushfd`
+- [x] 保存旧 `esp` 到旧任务结构
+- [x] 加载新任务 `esp`
+- [x] 恢复 `popfd` 与 `popa`
+- [x] `ret` 到新任务上次中断点
 - [ ] 切换时同步切换 `CR3`（进程独立地址空间后启用）
-- [ ] 验证两个内核线程可来回切换
+- [x] 验证两个内核线程可来回切换
 
 ### 3.5 调度器
-- [ ] 维护就绪队列
-- [ ] 实现 `scheduler_init`
-- [ ] 实现 `scheduler_add_task`
-- [ ] 实现 `scheduler_remove_task`
-- [ ] 实现 `scheduler_tick`
-- [ ] 实现时间片轮转
-- [ ] 在时钟中断中调用 `scheduler_tick`
-- [ ] 时间片耗尽时切到下一任务
-- [ ] 实现 `schedule` 主动让出
-- [ ] 实现空转任务（idle task）
-- [ ] 无就绪任务时切到 idle 并 `hlt`
+- [x] 维护就绪队列
+- [x] 实现 `scheduler_init`
+- [x] 实现 `scheduler_add_task`
+- [x] 实现 `scheduler_remove_task`
+- [x] 实现 `scheduler_tick`
+- [x] 实现时间片轮转
+- [x] 在时钟中断中调用 `scheduler_tick`
+- [x] 时间片耗尽时切到下一任务
+- [x] 实现 `schedule` 主动让出
+- [x] 实现空转任务（idle task）
+- [x]] 无就绪任务时切到 idle 并 `hlt`
 
 ### 3.6 睡眠与阻塞
-- [ ] 实现 `sleep(ms)`
-- [ ] 睡眠队列按到期 tick 排序
-- [ ] 每个 tick 检查到期任务
-- [ ] 到期任务移入就绪队列
-- [ ] 实现 `task_block`
-- [ ] 实现 `task_unblock`
+- [x] 实现 `sleep(ms)`
+- [x] 睡眠队列按到期 tick 排序
+- [x] 每个 tick 检查到期任务
+- [x] 到期任务移入就绪队列
+- [x] 实现 `task_block`
+- [x] 实现 `task_unblock`
 - [ ] 为后续信号量/互斥量预留接口
 
 ### 3.7 阶段验证
-- [ ] 两个内核线程交替打印，验证抢占生效
-- [ ] `sleep` 精度符合预期
-- [ ] 长时间运行无死锁、无栈溢出
-- [ ] `git commit`
+- [x] 两个内核线程交替打印，验证抢占生效
+- [x] `sleep` 精度符合预期
+- [x] 长时间运行无死锁、无栈溢出
+- [x] `git commit`
 
 ---
 
