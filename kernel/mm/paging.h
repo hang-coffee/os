@@ -35,7 +35,8 @@
 #define PAGE_ACCESSED 0x20
 #define PAGE_DIRTY 0x40
 
-#define KERNEL_BASE 0xc0000000
+#include "layout.h"
+
 #define PHYS_TO_VIRT(p) ((void *)((uint32_t)(p) + KERNEL_BASE))
 #define VIRT_TO_PHYS(v) ((uint32_t)(v) - KERNEL_BASE)
 

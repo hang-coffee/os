@@ -31,8 +31,16 @@
 #include "../include/kprintf.h"
 #include "../arch/io.h"
 #include "sched.h"
+#include "../drivers/pit.h"
+#include "../mm/pgdir.h"
+#include "../mm/layout.h"
+#include "../mm/pmm.h"
+#include "../mm/ustack.h"
+#include "../mm/paging.h"
+#include "trampoline.h"
 
 extern uint32_t kernel_page_dir_phys;
+extern void *memcpy(void *dest, const void *src, uint32_t n);
 
 void *memset(void *s, int c, uint32_t n) {    // fills the first n bytes of the memory area pointed to by s with the constant byte c
     uint8_t *p=(uint8_t *)s;
@@ -55,13 +63,32 @@ char *strncpy(char *dest, const char *src, size_t n) {
     return start;
 }
 
-
 task_t *current=NULL;
 task_t *idle_task=NULL;
 uint32_t next_pid=0;
 
+static void build_kernel_stack(task_t *t, uint32_t entry) {
+    uint32_t *sp=(uint32_t *)(t->kernel_stack_base+KERNEL_STACK_SIZE);
+    sp=(uint32_t *)((uint32_t)sp&(~0xf));
+    *--sp=entry;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0x202;
+    t->esp=(uint32_t)sp;
+}
+
 task_t *task_create(const char *name, task_entry_t entry) {
-    if(name==NULL || name[0]=='\0' || entry==NULL) {
+    if(name==NULL || name[0]=='\0') {
         return NULL;
     }
     task_t *task=kmalloc(sizeof(task_t));
@@ -84,28 +111,11 @@ task_t *task_create(const char *name, task_entry_t entry) {
     task->next=NULL;
     task->next_sleep=NULL;
     task->exit_code=0;
+    task->esp=0;
 
-    uint32_t top=(uint32_t)stack+KERNEL_STACK_SIZE;
-    top&=(~0xf);
-    uint32_t *sp=(uint32_t *)top;
-    // 压入
-    *--sp=(uint32_t)entry;
-    *--sp=0x10; // ds
-    *--sp=0x10; // es
-    *--sp=0x10; // fs
-    *--sp=0x10; // gs
-    *--sp=0;    // edi
-    *--sp=0;    // esi
-    *--sp=0;    // ebp
-    *--sp=0;    // esp_dummy
-    *--sp=0;    // ebx
-    *--sp=0;    // edx
-    *--sp=0;    // ecx
-    *--sp=0;    // eax
-    *--sp=0x202;// eflags: IF=1
-    task->esp=(uint32_t)sp;
-
-    scheduler_add_task(task);
+    if(entry!=NULL) {
+        build_kernel_stack(task, (uint32_t)entry);
+    } 
     return task;
 }
 
@@ -114,17 +124,39 @@ int task_destroy(task_t *task) {
     if(task==current) return -EINVAL;
     if(task==idle_task) return -EINVAL;
     if(task->state==TASK_RUNNING) return -EBUSY;
-    // TODO: 从就绪队列摘除，并从睡眠队列摘除
-    kfree((void *)(task->kernel_stack_base));
+    if(task->state==TASK_READY) {
+        scheduler_remove_task(task);
+    }
+    if(task->state==TASK_BLOCKED) {
+        sleep_queue_remove(task);
+    }
+    if(task->pgdir!=NULL) {
+        pgdir_destroy(task->pgdir);
+        task->pgdir=NULL;
+        task->page_dir_phys=0;
+    }
+    if(task->kernel_stack_base!=0) {
+        kfree((void *)(task->kernel_stack_base));
+        task->kernel_stack_base=0;
+    }
     kfree(task);
     return 0;
 }
 
 void task_exit(int code) {
     current->state=TASK_ZOMBIE;
-    // TODO: 从就绪队列摘除
     current->exit_code=code;
-    //schedule(); // 让出CPU
+    current->exit_time=pit_get_ticks();
+    if(current->pgdir) {
+//        pgdir_destroy(current->pgdir);
+//        current->pgdir=NULL;
+//        current->page_dir_phys=0;
+    }
+    // TODO: 释放用户地址空间
+    // TODO: 托孤
+    // TODO: SIGCHILD
+    scheduler_remove_task(current);
+    schedule();
     while(1) hlt();
 }
 
@@ -180,4 +212,29 @@ void task_init() {
     current=idle_task;
     idle_task->state=TASK_RUNNING;
     kprintf("task: idle pid=%u\n", idle_task->pid);
+}
+
+task_t *task_create_user(const char *name, const void *code, uint32_t size) {
+    task_t *t=task_create(name, NULL);
+    if(t==NULL) return NULL;
+    t->pgdir=pgdir_create(&(t->page_dir_phys));
+    uint32_t vaddr=USER_CODE_BASE;
+    const uint8_t *src=code;
+    uint32_t remaining=size;
+    while(remaining>0) {
+        uint32_t phys=pmm_alloc_page();
+        memset(PHYS_TO_VIRT(phys), 0, 4096);
+        uint32_t chunk=remaining<4096?remaining:4096;
+        memcpy(PHYS_TO_VIRT(phys), src, chunk);
+        map_user_page(t->pgdir, vaddr, phys, PAGE_USER|PAGE_RW);
+        vaddr+=4096;
+        src+=chunk;
+        remaining-=chunk;
+    }
+    ustack_setup(t);
+    t->user_entry=USER_CODE_BASE;
+    t->user_esp=USER_STACK_TOP;
+    build_kernel_stack(t, (uint32_t)user_trampoline);
+    scheduler_add_task(t);
+    return t;
 }

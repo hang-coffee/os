@@ -58,4 +58,43 @@
 #define	EDOM		33	/* Math argument out of domain of func */
 #define	ERANGE		34	/* Math result not representable */
 
+#define EDEADLK          35
+#define ENAMETOOLONG     36
+#define ENOLCK           37
+#define ENOSYS           38
+#define ENOTEMPTY        39
+#define ELOOP            40
+
+#define EWOULDBLOCK      EAGAIN
+
+#define ENOMSG           42
+#define EIDRM            43
+
+#define ENOSTR           60
+#define ENODATA          61
+#define ETIME            62
+#define ENOSR            63
+
+#define EPROTO           71
+#define EBADMSG          74
+#define EOVERFLOW        75
+#define EILSEQ           84
+
+#define ENOTSUP          EOPNOTSUPP
+#define EOPNOTSUPP       95
+
+#define ECANCELED        125
+#define EOWNERDEAD       130
+#define ENOTRECOVERABLE  131
+
+#define ESTALE            116
+#define EUCLEAN           117
+#define ENOTNAM           118
+#define ENAVAIL           119
+#define EISNAM            120
+#define EREMOTEIO         121
+#define EDQUOT            122
+#define ENOMEDIUM         123
+#define EMEDIUMTYPE       124
+
 #endif

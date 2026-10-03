@@ -29,6 +29,7 @@
 #include "arch/io.h"
 #include "arch/pic.h"
 #include "arch/irq.h"
+#include "arch/tss.h"
 #include "drivers/pit.h"
 #include "mm/mem_map.h"
 #include "mm/multiboot.h"
@@ -37,6 +38,9 @@
 #include "mm/heap.h"
 #include "sched/task.h"
 #include "sched/sched.h"
+#include "syscall/syscall.h"
+#include "syscall/lifecycle.h"
+#include "test.h"
 
 #include <stdint.h>
 
@@ -48,35 +52,9 @@ size_t strlen(char arr[]) {
     return i - 1; // 由于i是后置自增，需要减一
 }
 
-void task_a(void) {
-    while (1) {
-        kprintf("A");
-        __asm__ volatile("hlt");
-    }
-}
-
-void task_b(void) {
-    while (1) {
-        kprintf("B");
-        __asm__ volatile("hlt");
-    }
-}
-
-void task_c(void) {
-    while (1) {
-        kprintf("C");
-        sleep_ms(500);
-    }
-}
-void test_pit_sched(void) {
-    kprintf("\n=== pit sched test ===\n");
-    task_create("A", task_a);
-    task_create("B", task_b);
-    task_create("C", task_c);
-}
-
 void kernel_main(uint32_t magic, uint32_t info) {
 	gdt_init();
+    tss_init();
 	idt_init();
 	cli();
 	if(magic!=MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -92,7 +70,8 @@ void kernel_main(uint32_t magic, uint32_t info) {
 
     pic_init();
     irq_init();
-    
+    syscall_init();
+
     scheduler_init();
     task_init();
     pit_init(100);
@@ -101,8 +80,8 @@ void kernel_main(uint32_t magic, uint32_t info) {
 
     kprintf("\nWelcome to CGST(ConGeSTus' Glued, Silly & Terrible)!\n\n");
 
-    
-    test_pit_sched();
+    test_usermode_only();
+
 	while(1);
 }
 

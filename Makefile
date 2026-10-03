@@ -12,7 +12,7 @@ SRCS_C := $(shell find . -name '*.c' -not -path './$(BUILD)/*')
 SRCS_ASM := $(shell find . -name '*.asm' -not -path './$(BUILD)/*')
 SRCS_C := $(patsubst ./%,%,$(SRCS_C))
 SRCS_ASM := $(patsubst ./%,%,$(SRCS_ASM))
-OBJS := $(addprefix $(BUILD)/,$(SRCS_C:.c=.o)) $(addprefix $(BUILD)/,$(SRCS_ASM:.asm=.o))
+OBJS := $(addprefix $(BUILD)/,$(SRCS_C:.c=.o)) $(addprefix $(BUILD)/,$(SRCS_ASM:.asm=.o)) 
 DEPS := $(OBJS:.o=.d)
 
 .PHONY: all iso run debug clean
@@ -36,6 +36,15 @@ $(ISO): $(TARGET) grub.cfg
 	cp $(TARGET) $(ISODIR)/boot/os.elf
 	cp grub.cfg $(ISODIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) $(ISODIR)
+
+# 生成纯二进制
+build/user/test_user.bin: user/test_user.asm
+	@mkdir -p build/user
+	nasm -f bin $< -o $@
+
+# 把二进制转成 ELF 目标文件，符号名前缀与路径有关
+build/user/test_user.o: build/user/test_user.bin
+	objcopy -I binary -O elf32-i386 -B i386 $< $@
 
 iso: $(ISO)
 

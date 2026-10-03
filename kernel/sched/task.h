@@ -40,6 +40,16 @@ enum task_state {
 
 typedef struct task {
     uint32_t pid;
+    uint32_t ppid;
+    uint32_t uid;
+    uint32_t euid;
+    uint32_t gid;
+    uint32_t egid;
+    uint32_t brk;
+    uint32_t *pgdir;
+    uint32_t brk_start;
+    uint32_t stack_top;
+    uint32_t stack_limit;   // 用户栈
     char name[32];
     enum task_state state;
     uint32_t esp;       // 切换时保存的栈指针
@@ -53,6 +63,9 @@ typedef struct task {
     struct task *next;      // 就绪队列
     struct task *next_sleep;    // 睡眠队列
     int exit_code;
+    uint64_t exit_time;
+    uint32_t user_entry;    // 用户入口线性地址
+    uint32_t user_esp;      // 用户栈顶线性地址
 } task_t;
 
 extern task_t *current;
@@ -71,5 +84,7 @@ void task_dump(task_t *task);
 void task_init();
 
 extern void switch_context(uint32_t *old_esp, uint32_t new_esp);
+
+task_t *task_create_user(const char *name, const void *code, uint32_t size);
 
 #endif

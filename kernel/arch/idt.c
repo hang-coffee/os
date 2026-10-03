@@ -28,6 +28,7 @@
 #include "io.h"
 #include "../mm/paging.h"
 #include "../mm/pmm.h"
+#include "../mm/page_fault.h"
 
 #pragma GCC target("no-80387")
 
@@ -157,12 +158,12 @@ void isr_handle_default_err(idt_regs_t *r) {
 }
 
 void isr_handler(idt_regs_t *r) {
-    if(idt_user_mode(r)) {
-        kprintf("int %u, eip=0x%x, cs=0x%x\n", r->int_no, r->eip, r->cs);
-        kprintf("    from user: useresp=0x%x, ss=0x%x\n", r->useresp, r->ss);
-    } else {
+//    if(idt_user_mode(r)) {
+//        kprintf("int %u, eip=0x%x, cs=0x%x\n", r->int_no, r->eip, r->cs);
+//        kprintf("    from user: useresp=0x%x, ss=0x%x\n", r->useresp, r->ss);
+//    } else {
 //        kprintf("    from kernel\n");
-    }
+//    }
 
     switch(r->int_no) {
         case 0:                 // #DE -- divided by zero
@@ -175,44 +176,7 @@ void isr_handler(idt_regs_t *r) {
             isr_handle_gp(r);
             break;
         case 14:                // #PF -- page fault
-            uint32_t cr2;       // 获得错误码
-            __asm__ volatile (
-                "mov %%cr2, %0"
-                : "=r"(cr2)
-                :
-            );
-            int present=r->err_code&1;
-            const char *reason1, *reason2;
-            if(present) {
-                reason1=(r->err_code&4)?"user protection violation":"kernel protection violation";
-            } else {
-                reason1=(r->err_code&4)?"user page not present":"kernel page not present";
-            }
-            if(r->err_code&8) {
-                reason2=", illegal RSVD bit";
-            } else {
-                reason2="";
-            }
-                kprintf("Page fault at addr=0x%x\n", cr2);
-                kprintf("err=0x%x, %s when %s%s\n", r->err_code, reason1, (r->err_code&2)?"writing":"reading", reason2);
-            if(present) {
-                kprintf("dead\n");
-                cli();
-                hlt();
-            } else {
-/*                uint32_t phys=pmm_alloc_page();
-//                kprintf("allocating: virt=0x%x, phys=0x%x\n", (cr2&(~0xfff)), phys, PAGE_PRESENT|PAGE_USER|PAGE_RW);
-                // 缺页了，分配新的页
-                int ret=page_map(cr2&(~0xfff), phys, PAGE_PRESENT|PAGE_USER|PAGE_RW);
-                if(ret!=0) {
-                    kprintf("FATAL: TOO LITTLE MEMORY\n");
-                    cli();
-                    hlt();
-                }
-                return;*/
-                cli();
-                hlt();
-            }
+            isr_handle_pf(r);
             break;
         case 0xffffffff:
             kprintf("Default ISR\n");

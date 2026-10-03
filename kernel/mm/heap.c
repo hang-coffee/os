@@ -158,7 +158,7 @@ void *kcalloc(uint32_t nmemb, uint32_t size) {
     uint32_t total=nmemb*size;
     void *ptr=kmalloc(total);
     if(ptr) {
-        for(int i=0; i<total; i++) ((uint8_t *)(ptr))[i]=0;
+        for(uint32_t i=0; i<total; i++) ((uint8_t *)(ptr))[i]=0;
     }
     return 0;
 }

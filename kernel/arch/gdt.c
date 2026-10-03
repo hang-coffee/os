@@ -25,10 +25,10 @@
 
 #include "gdt.h"
 
-#define GDT_ENTRIES 5
+#define GDT_ENTRIES 6
 
 static gdt_entry_t gdt_entries[GDT_ENTRIES];
-static gdt_ptr_t gdt_ptr;
+gdt_ptr_t gdt_ptr;
 
 int gdt_set_entry(uint32_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
     if(limit>0xfffff) return -1;                    // 大于20位

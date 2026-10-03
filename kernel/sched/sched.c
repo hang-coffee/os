@@ -29,6 +29,8 @@
 #include "../include/errno.h"
 #include "../drivers/pit.h"
 #include "task.h"
+#include "../mm/pgdir.h"
+#include "../arch/tss.h"
 
 static task_t *ready_head=NULL;
 static task_t *ready_tail=NULL;
@@ -94,16 +96,16 @@ void switch_to(task_t *next) {
     current=next;
     next->state=TASK_RUNNING;
     if(prev->state==TASK_RUNNING) prev->state=TASK_READY;
+    if(next->pgdir!=prev->pgdir) pgdir_switch(next->pgdir);
+    tss_set_kernel_stack(next->kernel_stack_base+KERNEL_STACK_SIZE);
     switch_context(&prev->esp, next->esp);
 }
 
 void schedule() {   // 任务主动调用，而不是ISR
-    if(ready_count==0) return;
-    if(ready_count==1) return;
-    scheduler_remove_task(current);
-    current->state=TASK_READY;
-    scheduler_add_task(current);
-    task_t *next=ready_head;
+    task_t *prev=current;
+    task_t *next=scheduler_pick_next();
+    if(next==NULL) next=idle_task;
+    if(next==prev) return;
     switch_to(next);
     return;
 }
