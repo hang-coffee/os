@@ -43,6 +43,7 @@ void paging_init(void) {
     // 计算所需的PDE数量
     uint32_t map_limit=(pmm.highest_addr+0x3fffff)&(~0x3fffff);
     uint32_t num_pde=map_limit/0x400000;
+    if(num_pde>256) num_pde=256;
     // 将内核物理地址map到高地址
     uint32_t pd_idx_base=KERNEL_BASE>>22;
     for(uint32_t i=0; i<num_pde; i++) {

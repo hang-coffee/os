@@ -49,23 +49,31 @@ void mmap_init(uint32_t info) {
 		uint8_t *end = p + mbi->mmap_length;
 		while (p < end) {
  		    multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)p;
+            if(mmap->addr>=0x100000000ULL) {
+                p+=mmap->size+4;
+                continue;
+            }
+            uint32_t len=0;
+            if(mmap->addr+mmap->len>0x100000000ULL) {
+                len=0x100000000ULL-mmap->addr;
+            } else len=mmap->len;
             switch(mmap->type) {
                 case MULTIBOOT_MEMORY_AVAILABLE:
-                mmap_add(mmap->addr, mmap->len, MEM_REGION_TYPE_AVAIL);
-                mem_total_avail+=mmap->len;
+                mmap_add(mmap->addr, len, MEM_REGION_TYPE_AVAIL);
+                mem_total_avail+=len;
                 break;
                 case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-                mmap_add(mmap->addr, mmap->len, MEM_REGION_TYPE_ACPI_RECL);
+                mmap_add(mmap->addr, len, MEM_REGION_TYPE_ACPI_RECL);
                 break;
                 case MULTIBOOT_MEMORY_NVS:
-                mmap_add(mmap->addr, mmap->len, MEM_REGION_TYPE_ACPI_NVS);
+                mmap_add(mmap->addr, len, MEM_REGION_TYPE_ACPI_NVS);
                 break;
                 case MULTIBOOT_MEMORY_BADRAM:
-                mmap_add(mmap->addr, mmap->len, MEM_REGION_TYPE_BAD);
+                mmap_add(mmap->addr, len, MEM_REGION_TYPE_BAD);
                 break;
                 case MULTIBOOT_MEMORY_RESERVED:
                 default:
-                mmap_add(mmap->addr, mmap->len, MEM_REGION_TYPE_RSVD);
+                mmap_add(mmap->addr, len, MEM_REGION_TYPE_RSVD);
             }
  			p+=mmap->size+4;   // size 字段自身不计入 size
 		}

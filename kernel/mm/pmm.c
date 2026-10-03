@@ -65,16 +65,19 @@ void pmm_init() {
     // 尚未启用分页，物理地址可直接当指针用
     pmm.bitmap=(uint8_t *)bitmap_start;
     for(uint32_t i=0; i<pmm.bitmap_size; i++) {
-        pmm.bitmap[i]=0xff;
+        pmm.bitmap[i]=0xff; // 1. 先全部USED
     }
+    // 2. 将AVAILABLE的都标记为FREE
     for(int i=0; i<mem_region_count; i++) {
         if(mem_map[i].type!=MEM_REGION_TYPE_AVAIL) continue;
         pmm_mark_range(mem_map[i].base, mem_map[i].length, PMM_FREE);
     }
+    // 3. 将任何保留区都标记了
     pmm_mark_range(0x0, 0x1000, PMM_USED);
     pmm_mark_range(0x10000, 0x1000, PMM_USED);
     pmm_mark_range(0x9FC00, 0x6400, PMM_USED);
     pmm_mark_range(0xA0000, 0x20000, PMM_USED);
+    pmm_mark_range(0xC0000, 0x40000, PMM_USED);
     uint32_t ks=(uint32_t)kernel_phys_start;
     uint32_t ke=(uint32_t)kernel_phys_end;
     pmm_mark_range(ks, ke-ks, PMM_USED);
