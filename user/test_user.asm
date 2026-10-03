@@ -6,6 +6,7 @@ global user_test_start
 global user_test_end
 
 user_test_start:
+    mov esp, 0xBFFF0000
     ; sys_write(1, msg, 13)
     mov eax, 4
     mov ebx, 1
@@ -13,8 +14,7 @@ user_test_start:
     mov edx, 13
     int 0x80
 
-    mov esp, 0xBFFFF000
-    sub esp, 8192         ; 越过初始映射的 1 页
+    sub esp, 0x3000
     mov dword [esp], 0xAA ; 触发 #PF
 
     ; sys_exit(0)

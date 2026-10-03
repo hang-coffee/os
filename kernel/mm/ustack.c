@@ -29,7 +29,7 @@ int ustack_setup(task_t *t) {    // 设置用户栈
             return -ENOMEM;
         }
         memset(PHYS_TO_VIRT(phys), 0, 4096);
-        if(map_user_page(t->pgdir, vaddr, phys, PAGE_USER|PAGE_RW)) {
+        if(map_user_page(t->pgdir, vaddr, phys, PAGE_USER|PAGE_RW|PAGE_PRESENT)) {
             for(uint32_t j=stack_bottom; j<vaddr; j+=4096) {
                 uint32_t p=get_user_physical(t->pgdir, j);
                 unmap_user_page(t->pgdir, j);
@@ -50,7 +50,7 @@ int ustack_expand(task_t *t, uint32_t addr) {    // 从addr开始扩展用户栈
     uint32_t phys=pmm_alloc_page();
     if(phys==0) return -ENOMEM;
     memset(PHYS_TO_VIRT(phys), 0, 4096);
-    int ret=map_user_page(t->pgdir, page, phys, PAGE_USER|PAGE_RW);
+    int ret=map_user_page(t->pgdir, page, phys, PAGE_USER|PAGE_RW|PAGE_PRESENT);
     if(ret) {
         pmm_free_page(phys);
         return -ENOMEM;
