@@ -40,7 +40,9 @@
 #include "sched/sched.h"
 #include "syscall/syscall.h"
 #include "syscall/lifecycle.h"
-#include "test.h"
+extern const uint8_t _binary_build_user_hello_start[];
+extern const uint8_t _binary_build_user_hello_end[];
+
 
 #include <stdint.h>
 
@@ -80,7 +82,12 @@ void kernel_main(uint32_t magic, uint32_t info) {
 
     kprintf("\nWelcome to CGST(ConGeSTus' Glued, Silly & Terrible)!\n\n");
 
-    test_usermode_only();
+
+uint32_t hello_size = (uint32_t)
+    (_binary_build_user_hello_end - _binary_build_user_hello_start);
+task_create_user("hello",
+                 _binary_build_user_hello_start,
+                 hello_size);
 
 	while(1);
 }

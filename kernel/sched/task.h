@@ -85,6 +85,6 @@ void task_init();
 
 extern void switch_context(uint32_t *old_esp, uint32_t new_esp);
 
-task_t *task_create_user(const char *name, const void *code, uint32_t size);
+task_t *task_create_user(const char *name, const uint8_t *elf, uint32_t size);
 
 #endif

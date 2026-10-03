@@ -38,6 +38,7 @@
 #include "../mm/ustack.h"
 #include "../mm/paging.h"
 #include "trampoline.h"
+#include "../exec/elf.h"
 
 extern uint32_t kernel_page_dir_phys;
 extern void *memcpy(void *dest, const void *src, uint32_t n);
@@ -214,27 +215,55 @@ void task_init() {
     kprintf("task: idle pid=%u\n", idle_task->pid);
 }
 
-task_t *task_create_user(const char *name, const void *code, uint32_t size) {
+task_t *task_create_user(const char *name, const uint8_t *elf, uint32_t size) {
     task_t *t=task_create(name, NULL);
     if(t==NULL) return NULL;
+
     t->pgdir=pgdir_create(&(t->page_dir_phys));
-    uint32_t vaddr=USER_CODE_BASE;
-    const uint8_t *src=code;
-    uint32_t remaining=size;
-    while(remaining>0) {
-        uint32_t phys=pmm_alloc_page();
-        memset(PHYS_TO_VIRT(phys), 0, 4096);
-        uint32_t chunk=remaining<4096?remaining:4096;
-        memcpy(PHYS_TO_VIRT(phys), src, chunk);
-        map_user_page(t->pgdir, vaddr, phys, PAGE_USER|PAGE_RW);
-        vaddr+=4096;
-        src+=chunk;
-        remaining-=chunk;
+    if(t->pgdir==NULL) {
+        task_destroy(t);
+        return NULL;
     }
-    ustack_setup(t);
-    t->user_entry=USER_CODE_BASE;
-    t->user_esp=USER_STACK_TOP;
-    build_kernel_stack(t, (uint32_t)user_trampoline);
+
+    uint32_t entry;
+    int ret=elf_load(t->pgdir, elf, size, &entry);
+    if(ret) {
+        kprintf("task_create_user: elf_load -> %d\n", ret);
+        pgdir_destroy(t->pgdir);
+        t->pgdir=NULL;
+        task_destroy(t);
+        return NULL;
+    }
+
+    if(ustack_setup(t)) {
+        kprintf("task_create_user: ustack_setup failed\n");
+        pgdir_destroy(t->pgdir);
+        t->pgdir=NULL;
+        task_destroy(t);
+        return NULL;
+    }
+
+    t->user_entry=entry;
+    t->user_esp=USER_STACK_TOP-16;
+
+    uint32_t *sp=(uint32_t *)(t->kernel_stack_base+KERNEL_STACK_SIZE);
+    sp=(uint32_t *)((uint32_t)sp&(~0xf));
+    *--sp=(uint32_t)user_trampoline;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0x10;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0;
+    *--sp=0x202;
+    t->esp=(uint32_t)sp;
+
     scheduler_add_task(t);
     return t;
 }
